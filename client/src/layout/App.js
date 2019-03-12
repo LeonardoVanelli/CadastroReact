@@ -4,6 +4,14 @@ import '../css/bootstrap-theme.css';
 import NegociacaoBox from './NegociacaoView'
 
 class App extends Component {
+
+  constructor(){
+    super()
+    fetch("/autores")
+    .then(result => result.json())
+    .then(res => console.log(res))
+  }
+
   render() {
     return (
       <div className="container">              
