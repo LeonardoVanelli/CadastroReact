@@ -1,4 +1,4 @@
-export class ListaNegociacao {
+export default class ListaNegociacao {
 
     constructor() {
 
@@ -11,9 +11,18 @@ export class ListaNegociacao {
         return Array.from(this._negociacoes);
     }
 
-    set negociacoes(negociacao) {
+    adiciona(negociacao) {
 
         this._negociacoes.push(negociacao);
-        this._total++;
+        this._total += negociacao.volume;
+    }
+
+    limpa() {
+
+        this._negociacoes = [];
+    }
+
+    get total() {
+        return this._total;
     }
 }

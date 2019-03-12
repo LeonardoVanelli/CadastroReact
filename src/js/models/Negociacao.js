@@ -1,7 +1,7 @@
-export class Negociacao {
+export default class Negociacao {
 
     constructor(data, quantidade, valor) {
-        
+                
         this._data = new Date(data);
         this._quantidade = quantidade;
         this._valor = valor;

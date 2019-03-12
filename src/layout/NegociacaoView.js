@@ -1,27 +1,62 @@
 import React, { Component } from 'react'
+import Negociacao from '../js/models/Negociacao';
+import ListaNegociacao from '../js/models/ListaNegociacao';
+import DataHelper from '../js/helpers/DataHelper';
+import PubSub from 'pubsub-js';
+import Mensagem from './Mensagem';
 
 class FormularioNegociacao extends Component {
+
+    constructor() {
+
+        super();
+        this.state = { data: "", quantidade: 1, valor: 0.0 }
+        this.adicionarNegociacao = this.adicionarNegociacao.bind(this);
+        this.limpaCampos = this.limpaCampos.bind(this);
+    }
+
+    atualizaCampo(nomeInput, event) {
+
+        let campo = {}
+        campo[nomeInput] = event.target.value;
+        this.setState(campo);
+    }
+
+    limpaCampos(event) {
+        this.setState({ data: "", quantidade: 1, valor: 0.0 })
+    }
+
+    adicionarNegociacao(event) {
+
+        event.preventDefault();
+
+        var data = DataHelper.stringParaData(this.state.data)
+
+        let negociacao = new Negociacao(data, this.state.quantidade, this.state.valor);
+        PubSub.publish('afterAddNegociacao', negociacao);
+        this.limpaCampos(event);
+    }
 
     render() {
         return (
             <div>
-                <div id="mensagem"></div>
+               <Mensagem/>  
 
-                <form className="form">
+                <form className="form" onSubmit={this.adicionarNegociacao}>
 
                     <div className="form-group">
                         <label>Data</label>
-                        <input type="date" id="data" className="form-control" required />
+                        <input type="date" id="data" value={this.state.data} onChange={this.atualizaCampo.bind(this, "data")} className="form-control" required />
                     </div>
 
                     <div className="form-group">
                         <label >Quantidade</label>
-                        <input type="number" min="1" step="1" id="quantidade" className="form-control" required />
+                        <input type="number" min="1"value={this.state.quantidade} onChange={this.atualizaCampo.bind(this, "quantidade")} step="1" id="quantidade" className="form-control" required />
                     </div>
 
                     <div className="form-group">
                         <label >Valor</label>
-                        <input id="valor" type="number" className="form-control" min="0.01" step="0.01" required />
+                        <input id="valor" type="number" value={this.state.valor} onChange={this.atualizaCampo.bind(this, "valor")} className="form-control" min="0.01" step="0.01" required />
                     </div>
 
                     <button className="btn btn-primary" type="submit">Incluir</button>
@@ -33,6 +68,17 @@ class FormularioNegociacao extends Component {
 
 class TabelaNegociacao extends Component {
 
+    constructor() {
+
+        super();
+        this.limpaLista = this.limpaLista.bind(this);
+    }
+
+    limpaLista() {
+        
+        PubSub.publish('deleteListaNegociacao');
+    }
+
     render() {
         return (
             <div>
@@ -40,7 +86,7 @@ class TabelaNegociacao extends Component {
                     <button className="btn btn-primary text-center" type="button">
                         Importar Negociações
                     </button>
-                    <button className="btn btn-primary text-center" type="button">
+                    <button onClick={this.limpaLista} className="btn btn-primary text-center" type="button">
                         Apagar
                     </button>
                 </div>
@@ -55,21 +101,29 @@ class TabelaNegociacao extends Component {
                     </thead>
 
                     <tbody>
-                        <tr>
-                            <td>10/10/2010</td>
-                            <td>5</td>
-                            <td>150</td>
-                            <td>750</td>
-                        </tr>
+                        {
 
+
+                            this.props.lista.map(negociacao => {
+                                return (
+                                    <tr key={negociacao}>
+                                        <td>{DataHelper.dataParaString(negociacao.data)}</td>
+                                        <td>{negociacao.quantidade}</td>
+                                        <td>{negociacao.valor}</td>
+                                        <td>{negociacao.volume}</td>
+                                    </tr>
+                                )
+                            })
+
+                        }
                     </tbody>
 
                     <tfoot>
                         <tr>
                             <td colSpan="3"></td>
                             <td>
-                                750
-                </td>
+                                {this.props.total}
+                            </td>
                         </tr>
                     </tfoot>
 
@@ -81,11 +135,32 @@ class TabelaNegociacao extends Component {
 
 export default class NegociacaoBox extends Component {
 
+    constructor() {
+
+        super();
+        this.listaNegociacao = new ListaNegociacao();
+        this.state = { lista: this.listaNegociacao.negociacoes };
+    }
+
+    componentDidMount() {
+        PubSub.subscribe('afterAddNegociacao', (tag, nagociacao) => {
+            this.listaNegociacao.adiciona(nagociacao);
+            this.setState({ lista: this.listaNegociacao.negociacoes });
+            PubSub.publish('mensagem', {text: "Adicionado com sucesso", tipo: "success"})
+        })
+
+        PubSub.subscribe('deleteListaNegociacao', (tag) => {
+            this.listaNegociacao.limpa();
+            this.setState({lista: this.listaNegociacao.negociacoes})
+            PubSub.publish('mensagem', {text: "Lista removida com sucesso", tipo: "success"})
+        })
+    }
+
     render() {
         return (
             <div>
                 <FormularioNegociacao />
-                <TabelaNegociacao />
+                <TabelaNegociacao lista={this.state.lista} total={this.listaNegociacao.total} />
             </div>
         )
     }

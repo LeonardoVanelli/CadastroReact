@@ -6,7 +6,7 @@ import NegociacaoBox from './NegociacaoView'
 class App extends Component {
   render() {
     return (
-      <div className="container">
+      <div className="container">              
         <h1 className="text-center">Negociações</h1>
 
         <NegociacaoBox/>
