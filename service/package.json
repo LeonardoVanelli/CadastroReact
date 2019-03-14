@@ -2,15 +2,21 @@
   "name": "app",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "babel": "babel-node index.js",
+    "babel-debug": "babel-node index.js --inspect"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.1",
-    "express": "^4.12.3"
+    "express": "^4.12.3",
+    "mongodb": "^3.1.13"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0"
   }
 }
