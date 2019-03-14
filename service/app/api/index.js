@@ -18,10 +18,11 @@ api.listaTodos = function (req, res) {
 }
 
 api.cadastraNegociacao = (req, res) => {
-
-    new NegociacoesService()
-        .adiciona(req.query)
-        .then(response => res.status(200).json(response.ops))
+    
+    let query = req.body === {} ? req.query : req.body;
+    new NegociacoesService()                
+        .adiciona(query)
+        .then(response => res.status(200).json(response.ops[0]))
         .catch(err => res.status(200).json(err));
 }
 

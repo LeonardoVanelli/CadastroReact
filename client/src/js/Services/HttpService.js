@@ -21,4 +21,12 @@ export default class HttpService {
         })
         .then(res => this._handleErrors(res))
     }
+
+    delete(url) {
+
+        return fetch(url, {            
+            method: "delete"            
+        })
+        .then(res => this._handleErrors(res))
+    }
 }

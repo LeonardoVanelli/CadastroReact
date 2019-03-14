@@ -5,19 +5,38 @@ import NegociacaoBox from './NegociacaoView'
 
 class App extends Component {
 
-  constructor(){
-    super()
-    fetch("/autores")
-    .then(result => result.json())
-    .then(res => console.log(res))
+  componentWillMount() {
+
+    //let dado = { data: new Date(), quantidade: 10, valor: 500 }
+    // fetch('/negociacoes', {
+    //   headers: { "Content-type": "application/json" },
+    //   method: "post",
+    //   body: JSON.stringify(dado)
+    // })
+    //   .then(result => result.json())
+    //   .then(negociacao => console.log(negociacao))
+    //   .catch(err => console.log(err))
+
+
+    // fetch('/negociacoes')
+    //   .then(res => res.json())
+    //   .then(negociacoes => console.log(negociacoes))
+    //   .catch(err => console.log(err))
+
+    // fetch('/negociacoes/apagaTodos', {
+    //   method: "delete"
+    // })
+    //   .then(res => res.json())
+    //   .then(msg => console.log(msg))
+    //   .catch(err => console.log(err))
   }
 
   render() {
     return (
-      <div className="container">              
+      <div className="container">
         <h1 className="text-center">Negociações</h1>
 
-        <NegociacaoBox/>
+        <NegociacaoBox />
       </div>
     );
   }

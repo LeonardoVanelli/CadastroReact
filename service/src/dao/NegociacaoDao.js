@@ -1,5 +1,3 @@
-import { AssertionError } from "assert";
-
 export default class NegociacaoDao {
 
     constructor(db) {
@@ -16,7 +14,7 @@ export default class NegociacaoDao {
                     if (err)
                         reject(err);
                     else
-                        resolve(r);
+                        resolve(r);                        
                 });
         })
     }

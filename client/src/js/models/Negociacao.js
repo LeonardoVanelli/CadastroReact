@@ -1,12 +1,17 @@
 export default class Negociacao {
 
-    constructor(data, quantidade, valor) {
+    constructor(id, data, quantidade, valor) {
                 
+        this._id = id
         this._data = new Date(data);
         this._quantidade = quantidade;
         this._valor = valor;
 
         Object.freeze(this)
+    }
+
+    get id() {
+        return this._id;
     }
 
     get data() {
@@ -24,4 +29,5 @@ export default class Negociacao {
     get volume() {
         return this._quantidade * this._valor;
     }
+    
 }

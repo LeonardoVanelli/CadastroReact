@@ -20,6 +20,7 @@ export default class ListaNegociacao {
     limpa() {
 
         this._negociacoes = [];
+        this._total = 0;
     }
 
     get total() {

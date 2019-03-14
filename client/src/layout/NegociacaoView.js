@@ -1,9 +1,11 @@
 import React, { Component } from 'react'
-import Negociacao from '../js/models/Negociacao';
+
 import ListaNegociacao from '../js/models/ListaNegociacao';
 import DataHelper from '../js/helpers/DataHelper';
 import PubSub from 'pubsub-js';
 import Mensagem from './Mensagem';
+import NegociacaoService from '../js/Services/NegociacaoService';
+import Negociacao from '../js/models/Negociacao';
 
 class FormularioNegociacao extends Component {
 
@@ -31,8 +33,7 @@ class FormularioNegociacao extends Component {
         event.preventDefault();
 
         var data = DataHelper.stringParaData(this.state.data)
-
-        let negociacao = new Negociacao(data, this.state.quantidade, this.state.valor);
+        let negociacao = new Negociacao(null, data, this.state.quantidade, this.state.valor);
         PubSub.publish('afterAddNegociacao', negociacao);
         this.limpaCampos(event);
     }
@@ -40,7 +41,7 @@ class FormularioNegociacao extends Component {
     render() {
         return (
             <div>
-               <Mensagem/>  
+                <Mensagem />
 
                 <form className="form" onSubmit={this.adicionarNegociacao}>
 
@@ -51,7 +52,7 @@ class FormularioNegociacao extends Component {
 
                     <div className="form-group">
                         <label >Quantidade</label>
-                        <input type="number" min="1"value={this.state.quantidade} onChange={this.atualizaCampo.bind(this, "quantidade")} step="1" id="quantidade" className="form-control" required />
+                        <input type="number" min="1" value={this.state.quantidade} onChange={this.atualizaCampo.bind(this, "quantidade")} step="1" id="quantidade" className="form-control" required />
                     </div>
 
                     <div className="form-group">
@@ -106,7 +107,7 @@ class TabelaNegociacao extends Component {
 
                             this.props.lista.map(negociacao => {
                                 return (
-                                    <tr key={negociacao}>
+                                    <tr key={negociacao.id}>
                                         <td>{DataHelper.dataParaString(negociacao.data)}</td>
                                         <td>{negociacao.quantidade}</td>
                                         <td>{negociacao.valor}</td>
@@ -140,19 +141,51 @@ export default class NegociacaoBox extends Component {
         super();
         this.listaNegociacao = new ListaNegociacao();
         this.state = { lista: this.listaNegociacao.negociacoes };
+        this.negociacaoService = new NegociacaoService();
+    }
+
+    componentWillMount() {
+        
+        this.negociacaoService.listaTodos()
+            .then(negociacoes => {
+                
+                negociacoes.forEach(negociacao => {
+
+                    this.listaNegociacao.adiciona(negociacao)
+                })
+                this.setState({ lista: this.listaNegociacao.negociacoes });                
+            })
     }
 
     componentDidMount() {
+
         PubSub.subscribe('afterAddNegociacao', (tag, nagociacao) => {
-            this.listaNegociacao.adiciona(nagociacao);
-            this.setState({ lista: this.listaNegociacao.negociacoes });
-            PubSub.publish('mensagem', {text: "Adicionado com sucesso", tipo: "success"})
+
+            this.negociacaoService.adiciona(nagociacao)
+                .then(nego => {
+                    this.listaNegociacao.adiciona(nego);
+                    this.setState({ lista: this.listaNegociacao.negociacoes });
+                    PubSub.publish('mensagem', { text: "Adicionado com sucesso", tipo: "success" })
+                })
+                .catch(err => {
+                    PubSub.publish('mensagem', { text: "Não foi possivel incluir a negociação", tipo: "error" })
+                    console.log(err);
+                })
         })
 
         PubSub.subscribe('deleteListaNegociacao', (tag) => {
-            this.listaNegociacao.limpa();
-            this.setState({lista: this.listaNegociacao.negociacoes})
-            PubSub.publish('mensagem', {text: "Lista removida com sucesso", tipo: "success"})
+
+            this.negociacaoService.apagaTodos()
+                .then(() => {
+                    this.listaNegociacao.limpa();
+                    this.setState({ lista: this.listaNegociacao.negociacoes })
+                    PubSub.publish('mensagem', { text: "Lista removida com sucesso", tipo: "success" })
+                })
+                .catch(err => {
+                    PubSub.publish('mensagem', { text: "Não foi possivel apagar a lista de negociação", tipo: "error" })
+                    console.log(err);
+                })
+
         })
     }
 
