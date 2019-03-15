@@ -76,7 +76,7 @@ class TabelaNegociacao extends Component {
     }
 
     limpaLista() {
-        
+
         PubSub.publish('deleteListaNegociacao');
     }
 
@@ -103,8 +103,6 @@ class TabelaNegociacao extends Component {
 
                     <tbody>
                         {
-
-
                             this.props.lista.map(negociacao => {
                                 return (
                                     <tr key={negociacao.id}>
@@ -145,15 +143,19 @@ export default class NegociacaoBox extends Component {
     }
 
     componentWillMount() {
-        
+
         this.negociacaoService.listaTodos()
             .then(negociacoes => {
-                
+
                 negociacoes.forEach(negociacao => {
 
                     this.listaNegociacao.adiciona(negociacao)
                 })
-                this.setState({ lista: this.listaNegociacao.negociacoes });                
+                this.setState({ lista: this.listaNegociacao.negociacoes });
+            })
+            .catch(err => {
+                PubSub.publish('mensagem', { text: "Não foi possivel acessar o servidor", tipo: "error" })
+                console.log(err)
             })
     }
 
