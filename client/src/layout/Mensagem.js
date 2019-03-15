@@ -14,8 +14,11 @@ export default class Mensagem extends Component {
     componentDidMount() {
 
         PubSub.subscribe('mensagem', (tag, mensagem) => {
-            let tipo = `alert alert-${mensagem.tipo}`
-            this.setState({text: mensagem.text, tipo:tipo})
+            let tipo = `alert alert-${mensagem.tipo}`;
+            this.setState({text: mensagem.text, tipo:tipo});
+            setTimeout(() => {
+                this.setState({text: '', tipo:'success'});
+            }, 5000)
         })
     }
 

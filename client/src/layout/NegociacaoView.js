@@ -4,8 +4,8 @@ import ListaNegociacao from '../js/models/ListaNegociacao';
 import DataHelper from '../js/helpers/DataHelper';
 import PubSub from 'pubsub-js';
 import Mensagem from './Mensagem';
-import NegociacaoService from '../js/Services/NegociacaoService';
 import Negociacao from '../js/models/Negociacao';
+import NegociacaoController from '../js/Controllers/NegociacaoController';
 
 class FormularioNegociacao extends Component {
 
@@ -14,7 +14,7 @@ class FormularioNegociacao extends Component {
         super();
         this.state = { data: "", quantidade: 1, valor: 0.0 }
         this.adicionarNegociacao = this.adicionarNegociacao.bind(this);
-        this.limpaCampos = this.limpaCampos.bind(this);
+        this.limpaCampos = this.limpaCampos.bind(this);        
     }
 
     atualizaCampo(nomeInput, event) {
@@ -24,18 +24,21 @@ class FormularioNegociacao extends Component {
         this.setState(campo);
     }
 
-    limpaCampos(event) {
+    limpaCampos() {
         this.setState({ data: "", quantidade: 1, valor: 0.0 })
     }
 
     adicionarNegociacao(event) {
 
         event.preventDefault();
+    
+        PubSub.publish('afterAddNegociacao', this.montaNegociacao());
+        this.limpaCampos();
+    }
 
+    montaNegociacao() {
         var data = DataHelper.stringParaData(this.state.data)
-        let negociacao = new Negociacao(null, data, this.state.quantidade, this.state.valor);
-        PubSub.publish('afterAddNegociacao', negociacao);
-        this.limpaCampos(event);
+        return new Negociacao(null, data, this.state.quantidade, this.state.valor);
     }
 
     render() {
@@ -67,13 +70,7 @@ class FormularioNegociacao extends Component {
     }
 }
 
-class TabelaNegociacao extends Component {
-
-    constructor() {
-
-        super();
-        this.limpaLista = this.limpaLista.bind(this);
-    }
+class TabelaNegociacao extends Component {    
 
     limpaLista() {
 
@@ -139,55 +136,21 @@ export default class NegociacaoBox extends Component {
         super();
         this.listaNegociacao = new ListaNegociacao();
         this.state = { lista: this.listaNegociacao.negociacoes };
-        this.negociacaoService = new NegociacaoService();
-    }
-
-    componentWillMount() {
-
-        this.negociacaoService.listaTodos()
-            .then(negociacoes => {
-
-                negociacoes.forEach(negociacao => {
-
-                    this.listaNegociacao.adiciona(negociacao)
-                })
-                this.setState({ lista: this.listaNegociacao.negociacoes });
-            })
-            .catch(err => {
-                PubSub.publish('mensagem', { text: "Não foi possivel acessar o servidor", tipo: "error" })
-                console.log(err)
-            })
+        this.negociacaoController = new NegociacaoController(this);
     }
 
     componentDidMount() {
 
-        PubSub.subscribe('afterAddNegociacao', (tag, nagociacao) => {
+        this.negociacaoController.listaTodos();
 
-            this.negociacaoService.adiciona(nagociacao)
-                .then(nego => {
-                    this.listaNegociacao.adiciona(nego);
-                    this.setState({ lista: this.listaNegociacao.negociacoes });
-                    PubSub.publish('mensagem', { text: "Adicionado com sucesso", tipo: "success" })
-                })
-                .catch(err => {
-                    PubSub.publish('mensagem', { text: "Não foi possivel incluir a negociação", tipo: "error" })
-                    console.log(err);
-                })
+        PubSub.subscribe('afterAddNegociacao', (tag, negociacao) => {
+
+            this.negociacaoController.adiciona(negociacao);
         })
 
         PubSub.subscribe('deleteListaNegociacao', (tag) => {
 
-            this.negociacaoService.apagaTodos()
-                .then(() => {
-                    this.listaNegociacao.limpa();
-                    this.setState({ lista: this.listaNegociacao.negociacoes })
-                    PubSub.publish('mensagem', { text: "Lista removida com sucesso", tipo: "success" })
-                })
-                .catch(err => {
-                    PubSub.publish('mensagem', { text: "Não foi possivel apagar a lista de negociação", tipo: "error" })
-                    console.log(err);
-                })
-
+            this.negociacaoController.apagaTodos();
         })
     }
 
@@ -195,7 +158,8 @@ export default class NegociacaoBox extends Component {
         return (
             <div>
                 <FormularioNegociacao />
-                <TabelaNegociacao lista={this.state.lista} total={this.listaNegociacao.total} />
+                <TabelaNegociacao lista={this.state.lista} 
+                                  total={this.listaNegociacao.total} />
             </div>
         )
     }
