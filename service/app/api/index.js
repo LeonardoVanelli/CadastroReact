@@ -1,0 +1,37 @@
+/* Código simplório, apenas para fornecer o serviço para a aplicação */
+import NegociacoesService from '../../src/services/NegociacaoService';
+
+var api = {}
+
+var dataAtual = new Date();
+var dataAnterior = new Date();
+dataAnterior.setDate(dataAtual.getDate() - 7);
+var dateRetrasada = new Date();
+dateRetrasada.setDate(dataAtual.getDate() - 14);
+
+api.listaTodos = function (req, res) {
+
+    new NegociacoesService()
+        .buscaTodos()
+        .then(negociacoes => res.json(negociacoes))
+        .catch(err => res.status(500).json(err))
+}
+
+api.cadastraNegociacao = (req, res) => {
+    
+    let query = req.body === {} ? req.query : req.body;
+    new NegociacoesService()                
+        .adiciona(query)
+        .then(response => res.status(200).json(response.ops[0]))
+        .catch(err => res.status(200).json(err));
+}
+
+api.apagaTodos = (req, res) => {
+    
+    new NegociacoesService()
+        .apaga()
+        .then(() => res.status(200).json("Lista apagada com sucesso"))
+        .catch(err => res.status(200).json(err))
+}
+
+export default api;
