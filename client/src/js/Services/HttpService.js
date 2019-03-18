@@ -1,8 +1,10 @@
 export default class HttpService {
 
     _handleErrors(res) {
-        if (!res.ok)
-            throw new Error(res.statusText);
+        if (!res.ok){
+            res.json().then(res => console.log(res));
+            throw new Error(res);
+        }
         return res;
     }
 
